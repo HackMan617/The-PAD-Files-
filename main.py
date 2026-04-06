@@ -63,6 +63,27 @@ MAX_VISIBLE = (SH - TITLE_H - FOOTER_H) // (CARD_H + CARD_GAP)  # = 3
 def show_centered(text, y, color=WHITE, bg=BLACK):
     x = max(0, (SW - len(text) * 16) // 2)
     display.text(font2, text, x, y, color, bg)
+    
+    
+# ── Buzzer ────────────────────────────────────────────────────
+buzzer = PWM(Pin(15))
+buzzer.duty_u16(0)
+
+def _beep(freq, ms):
+    buzzer.freq(freq)
+    buzzer.duty_u16(1500)
+    utime.sleep_ms(ms)
+    buzzer.duty_u16(0)
+
+def select_sound():
+    _beep(523, 60)
+    utime.sleep_ms(20)
+    _beep(659, 60)
+    utime.sleep_ms(20)
+    _beep(784, 80)
+
+def nav_sound():
+    _beep(440, 30)
 
 def draw_card(draw_y, game, selected):
     is_ready = game["status"] == "ready"
@@ -165,6 +186,7 @@ def menu_loop():
             elif selected >= scroll_top + MAX_VISIBLE:
                 scroll_top = selected - MAX_VISIBLE + 1
             draw_menu(selected, scroll_top)
+            nav_sound()
 
         b3_now = button3.value()
         if b3_now and not b3_was_low:
@@ -177,6 +199,7 @@ def menu_loop():
                     utime.sleep_ms(80)
                     draw_card(card_y, GAMES[selected], True)
                     utime.sleep_ms(80)
+                select_sound()
                 utime.sleep_ms(100)
 
                 launch(GAMES[selected]["file"])
@@ -185,5 +208,4 @@ def menu_loop():
         b3_was_low = not b3_now
         utime.sleep_ms(30)
 
-# ── Entry point ───────────────────────────────────────────────
 menu_loop()
